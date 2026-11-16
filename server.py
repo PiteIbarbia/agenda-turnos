@@ -194,7 +194,43 @@ class AgendaRequestHandler(BaseHTTPRequestHandler):
             self.send_json({"turnos": turnos, "total": len(turnos)})
             return
 
-        # 7. Servir archivos estáticos y páginas HTML
+        # 7. Backup Base de Datos SQLite (.db)
+        if path == "/api/admin/backup/db":
+            if not self.is_admin_authenticated():
+                self.send_error_json("No autorizado", 401)
+                return
+            from database import DB_PATH
+            if not os.path.exists(DB_PATH):
+                self.send_error_json("Base de datos no encontrada", 404)
+                return
+            with open(DB_PATH, "rb") as f:
+                db_bytes = f.read()
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Disposition", f'attachment; filename="agenda_backup_{today_str}.db"')
+            self.send_header("Content-Length", str(len(db_bytes)))
+            self.end_headers()
+            self.wfile.write(db_bytes)
+            return
+
+        # 8. Backup CSV para Excel (.csv)
+        if path == "/api/admin/backup/csv":
+            if not self.is_admin_authenticated():
+                self.send_error_json("No autorizado", 401)
+                return
+            from database import export_turnos_csv
+            csv_bytes = export_turnos_csv()
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv; charset=utf-8")
+            self.send_header("Content-Disposition", f'attachment; filename="turnos_{today_str}.csv"')
+            self.send_header("Content-Length", str(len(csv_bytes)))
+            self.end_headers()
+            self.wfile.write(csv_bytes)
+            return
+
+        # 9. Servir archivos estáticos y páginas HTML
         self.serve_static(path)
 
     def do_POST(self):

@@ -330,6 +330,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Descargas de Respaldos (Excel y SQLite)
+  function downloadWithAuth(endpoint) {
+    window.location.href = `${endpoint}?token=${authToken}`;
+  }
+
+  const btnExportCsv = document.getElementById("btnExportCsv");
+  if (btnExportCsv) {
+    btnExportCsv.addEventListener("click", () => downloadWithAuth("/api/admin/backup/csv"));
+  }
+
+  const btnBackupDb = document.getElementById("btnBackupDb");
+  if (btnBackupDb) {
+    btnBackupDb.addEventListener("click", () => downloadWithAuth("/api/admin/backup/db"));
+  }
+
+
   // Guardar Configuración
   configForm.addEventListener("submit", async (e) => {
     e.preventDefault();

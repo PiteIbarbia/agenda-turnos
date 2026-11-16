@@ -176,7 +176,38 @@ def application(environ, start_response):
             turnos = get_turnos(filtro_estado=filtro_estado, fecha=fecha, desde_fecha=desde_fecha)
             return json_response({"turnos": turnos, "total": len(turnos)})
 
-        # 7. Servir archivos estáticos
+        # 7. Backup Base de Datos SQLite (.db)
+        if path == "/api/admin/backup/db":
+            if not is_auth():
+                return json_response({"error": True, "mensaje": "No autorizado"}, 401)
+            from database import DB_PATH
+            if not os.path.exists(DB_PATH):
+                return json_response({"error": True, "mensaje": "Base de datos no encontrada"}, 404)
+            with open(DB_PATH, "rb") as f:
+                db_bytes = f.read()
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            start_response("200 OK", [
+                ("Content-Type", "application/octet-stream"),
+                ("Content-Disposition", f'attachment; filename="agenda_backup_{today_str}.db"'),
+                ("Content-Length", str(len(db_bytes)))
+            ])
+            return [db_bytes]
+
+        # 8. Backup CSV para Excel (.csv)
+        if path == "/api/admin/backup/csv":
+            if not is_auth():
+                return json_response({"error": True, "mensaje": "No autorizado"}, 401)
+            from database import export_turnos_csv
+            csv_bytes = export_turnos_csv()
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            start_response("200 OK", [
+                ("Content-Type", "text/csv; charset=utf-8"),
+                ("Content-Disposition", f'attachment; filename="turnos_{today_str}.csv"'),
+                ("Content-Length", str(len(csv_bytes)))
+            ])
+            return [csv_bytes]
+
+        # 9. Servir archivos estáticos
         target_path = None
         if path in ("", "/"):
             target_path = os.path.join(STATIC_DIR, "index.html")

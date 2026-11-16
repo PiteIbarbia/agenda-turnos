@@ -189,3 +189,25 @@ def eliminar_turno(turno_id):
     conn.commit()
     conn.close()
     return rows_affected > 0
+
+def export_turnos_csv():
+    import csv
+    import io
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nombre, apellido, celular, email, motivo, fecha, hora_inicio, hora_fin, estado, creado_en FROM turnos ORDER BY fecha DESC, hora_inicio DESC")
+    rows = cursor.fetchall()
+    conn.close()
+
+    output = io.StringIO()
+    output.write("\ufeff") # BOM UTF-8 para Excel
+    writer = csv.writer(output, delimiter=";")
+    writer.writerow(["ID", "Nombre", "Apellido", "Celular / WhatsApp", "Email", "Motivo", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Fecha Registro"])
+    for r in rows:
+        writer.writerow([
+            r["id"], r["nombre"], r["apellido"], r["celular"], 
+            r["email"], r["motivo"], r["fecha"], r["hora_inicio"], 
+            r["hora_fin"], r["estado"], r["creado_en"]
+        ])
+    return output.getvalue().encode("utf-8")
+

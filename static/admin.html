@@ -135,8 +135,16 @@
               <button type="button" class="filter-pill" data-filter="cancelados">Cancelados</button>
             </div>
 
-            <div class="search-box">
-              <input type="text" id="searchTurnosInput" placeholder="🔍 Buscar por nombre o tel..." style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <div class="search-box">
+                <input type="text" id="searchTurnosInput" placeholder="🔍 Buscar por nombre o tel..." style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+              </div>
+              <button type="button" id="btnExportCsv" class="admin-link-btn" title="Descargar turnos para Excel">
+                📊 Excel (.csv)
+              </button>
+              <button type="button" id="btnBackupDb" class="admin-link-btn" title="Descargar base de datos completa">
+                💾 Respaldo (.db)
+              </button>
             </div>
           </div>
 
