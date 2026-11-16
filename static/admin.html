@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Agenda de Turnos</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+</head>
+<body>
+
+  <!-- Encabezado Superior -->
+  <header class="header">
+    <div class="header-container">
+      <a href="/admin" class="brand-link">
+        <span>⚙️</span>
+        <span>Panel Administrador</span>
+        <span class="brand-badge" style="background: #f1f5f9; color: #475569;">Admin</span>
+      </a>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <a href="/" target="_blank" class="admin-link-btn" title="Ver la web tal como la ven los clientes">
+          🌐 Ver Web de Clientes
+        </a>
+        <button id="btnLogout" class="admin-link-btn" style="color: var(--danger); cursor: pointer;" title="Cerrar sesión">
+          Cerrar Sesión 🚪
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="main-content">
+
+    <!-- Vista de Login (cuando no está autenticado) -->
+    <div id="adminLoginView" class="login-card">
+      <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔒</div>
+      <h2>Acceso Administrador</h2>
+      <p>Ingresa tu clave de administrador para gestionar los turnos y sincronizar con Apple Calendar.</p>
+      
+      <div id="loginAlert" class="alert alert-danger" style="display: none;"></div>
+
+      <form id="adminLoginForm">
+        <div class="form-group" style="text-align: left; margin-bottom: 1.25rem;">
+          <label for="adminPasswordInput">Contraseña:</label>
+          <input type="password" id="adminPasswordInput" placeholder="Clave inicial: admin" required autocomplete="current-password">
+          <span class="input-helper">Clave por defecto: <strong>admin</strong> (puedes cambiarla en ajustes).</span>
+        </div>
+        <button type="submit" class="btn-submit" style="width: 100%;">
+          Ingresar al Panel 🚀
+        </button>
+      </form>
+    </div>
+
+    <!-- Vista de Dashboard (cuando está autenticado) -->
+    <div id="adminDashboardView" style="display: none;">
+      
+      <!-- Métricas / Estadísticas Rápidas -->
+      <div class="admin-stats">
+        <div class="stat-card">
+          <div class="stat-label">Turnos Próximos</div>
+          <div id="statProximos" class="stat-value" style="color: var(--primary);">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Turnos para Hoy</div>
+          <div id="statHoy" class="stat-value" style="color: var(--success);">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Histórico</div>
+          <div id="statTotal" class="stat-value">0</div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Destacada: Sincronización con Apple Calendar -->
+      <div class="apple-sync-card">
+        <div class="apple-sync-header">
+          <div class="apple-logo-badge">🍏</div>
+          <div>
+            <h2>Sincronización con Apple Calendar (iPhone, iPad, Mac)</h2>
+            <p>Cada turno que reserve un cliente aparecerá automáticamente en tu calendario de Apple con un solo toque.</p>
+          </div>
+        </div>
+
+        <div class="url-box-container">
+          <input type="text" id="webcalUrlText" readonly class="url-text" style="background: transparent; border: none; width: 100%; color: #38bdf8; outline: none; font-size: 0.85rem;" value="Cargando enlace...">
+          <button type="button" id="btnCopyWebcal" class="btn-copy-url">📋 Copiar Enlace</button>
+        </div>
+
+        <div class="apple-sync-actions">
+          <a id="btnOpenAppleDirect" href="#" class="btn-apple-direct" title="Abre directamente la app de Calendario en tu Mac o iPhone">
+            📱 Suscribirme en Apple Calendar (1 Clic)
+          </a>
+        </div>
+
+        <!-- Guía Rápida para Dispositivos Apple -->
+        <div class="guide-steps">
+          <div class="guide-device-card">
+            <h4>📱 En iPhone o iPad:</h4>
+            <ol>
+              <li>Abre esta página en Safari desde tu iPhone y toca el botón <strong>"Suscribirme en Apple Calendar"</strong>.</li>
+              <li>O ve a: <strong>Ajustes &gt; Calendario &gt; Cuentas &gt; Añadir cuenta &gt; Otra &gt; Añadir suscripción a calendario</strong>.</li>
+              <li>Pega el enlace copiado arriba y toca <strong>Guardar</strong>. ¡Listo!</li>
+            </ol>
+          </div>
+          <div class="guide-device-card">
+            <h4>💻 En Mac (macOS):</h4>
+            <ol>
+              <li>Haz clic en el botón <strong>"Suscribirme en Apple Calendar"</strong> o abre la app <strong>Calendario</strong>.</li>
+              <li>En el menú superior ve a: <strong>Archivo &gt; Nueva suscripción de calendario...</strong> (Option + Command + S).</li>
+              <li>Pega el enlace y selecciona frecuencia de actualización: <strong>Cada 15 minutos</strong>.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestañas de Navegación -->
+      <div class="admin-tabs">
+        <button type="button" class="tab-btn active" data-tab="tabTurnos">
+          📅 Gestión de Turnos
+        </button>
+        <button type="button" class="tab-btn" data-tab="tabConfig">
+          ⚙️ Horarios y Ajustes
+        </button>
+      </div>
+
+      <!-- Contenido Pestaña 1: Turnos -->
+      <div id="tabTurnos" class="tab-content active">
+        <div class="turnos-card">
+          
+          <div class="turnos-toolbar">
+            <div class="filter-pills">
+              <button type="button" class="filter-pill active" data-filter="proximos">Próximos</button>
+              <button type="button" class="filter-pill" data-filter="hoy">Hoy</button>
+              <button type="button" class="filter-pill" data-filter="todos">Todos</button>
+              <button type="button" class="filter-pill" data-filter="completados">Completados</button>
+              <button type="button" class="filter-pill" data-filter="cancelados">Cancelados</button>
+            </div>
+
+            <div class="search-box">
+              <input type="text" id="searchTurnosInput" placeholder="🔍 Buscar por nombre o tel..." style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+            </div>
+          </div>
+
+          <div class="turnos-table-wrap">
+            <table class="turnos-table">
+              <thead>
+                <tr>
+                  <th>Fecha y Hora</th>
+                  <th>Cliente</th>
+                  <th>Celular / WhatsApp</th>
+                  <th>Estado</th>
+                  <th>Acciones Rápidas</th>
+                </tr>
+              </thead>
+              <tbody id="turnosTableBody">
+                <!-- Filas inyectadas con JS -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Contenido Pestaña 2: Configuración -->
+      <div id="tabConfig" class="tab-content">
+        <div class="turnos-card" style="padding: 2rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem; color: var(--gray-900);">Configuración de la Agenda y Horarios</h3>
+          <p style="color: var(--gray-600); margin-bottom: 1.5rem; font-size: 0.9rem;">Define aquí tus horarios de atención, la duración de cada cita y tus datos de contacto.</p>
+
+          <div id="configAlert" class="alert alert-success" style="display: none;"></div>
+
+          <form id="configForm" class="booking-form">
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cfgTitulo">Título de tu Agenda / Negocio:</label>
+                <input type="text" id="cfgTitulo" required>
+              </div>
+              <div class="form-group">
+                <label for="cfgProfesional">Nombre del Administrador / Profesional:</label>
+                <input type="text" id="cfgProfesional">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="cfgDescripcion">Descripción o Mensaje de Bienvenida para el Cliente:</label>
+              <input type="text" id="cfgDescripcion">
+            </div>
+
+            <div class="form-group">
+              <label for="cfgTelefono">Teléfono / WhatsApp de Contacto del Administrador:</label>
+              <input type="tel" id="cfgTelefono" placeholder="Ej: +54 9 11 1234-5678">
+              <span class="input-helper">A este número los clientes podrán enviar un mensaje predeterminado al reservar.</span>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--gray-200); margin: 0.5rem 0;">
+
+            <h4 style="font-size: 1.05rem; font-weight: 700;">Horarios y Duración de Turnos</h4>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cfgDuracion">Duración de cada turno (minutos):</label>
+                <select id="cfgDuracion">
+                  <option value="15">15 minutos</option>
+                  <option value="30">30 minutos</option>
+                  <option value="45">45 minutos</option>
+                  <option value="60">60 minutos (1 hora)</option>
+                  <option value="90">90 minutos (1 hora y media)</option>
+                  <option value="120">120 minutos (2 horas)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="cfgBuffer">Pausa entre turnos (descanso/buffer):</label>
+                <select id="cfgBuffer">
+                  <option value="0">Sin pausa (0 min)</option>
+                  <option value="5">5 minutos</option>
+                  <option value="10">10 minutos</option>
+                  <option value="15">15 minutos</option>
+                  <option value="30">30 minutos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cfgApertura">Hora de inicio de atención:</label>
+                <input type="time" id="cfgApertura" required>
+              </div>
+              <div class="form-group">
+                <label for="cfgCierre">Hora de fin de atención:</label>
+                <input type="time" id="cfgCierre" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cfgPausaIni">Inicio de pausa / almuerzo (opcional):</label>
+                <input type="time" id="cfgPausaIni">
+              </div>
+              <div class="form-group">
+                <label for="cfgPausaFin">Fin de pausa / almuerzo (opcional):</label>
+                <input type="time" id="cfgPausaFin">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Días de la semana habilitados para turnos:</label>
+              <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.25rem;">
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 0.35rem;">
+                  <input type="checkbox" id="dayChk_1"> Lunes
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 0.35rem;">
+                  <input type="checkbox" id="dayChk_2"> Martes
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 0.35rem;">
+                  <input type="checkbox" id="dayChk_3"> Miércoles
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 0.35rem;">
+                  <input type="checkbox" id="dayChk_4"> Jueves
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 0.35rem;">
+                  <input type="checkbox" id="dayChk_5"> Viernes
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 0.35rem;">
+                  <input type="checkbox" id="dayChk_6"> Sábado
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 0.35rem;">
+                  <input type="checkbox" id="dayChk_0"> Domingo
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="cfgMaxDias">Días de anticipación máxima para reservar:</label>
+              <input type="number" id="cfgMaxDias" min="1" max="180" style="max-width: 200px;">
+              <span class="input-helper">Limita qué tan adelante en el calendario pueden agendar los clientes (ej. 30 días).</span>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--gray-200); margin: 0.5rem 0;">
+
+            <div class="form-group">
+              <label for="cfgNewPassword">Cambiar Contraseña de Administrador:</label>
+              <input type="password" id="cfgNewPassword" placeholder="Dejar en blanco para mantener la actual" style="max-width: 320px;">
+            </div>
+
+            <button type="submit" class="btn-submit" style="max-width: 250px; margin-top: 1rem;">
+              💾 Guardar Ajustes
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer>
+    <p>Panel de Administración &bull; Agenda de Turnos Sincronizada con Apple Calendar</p>
+  </footer>
+
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

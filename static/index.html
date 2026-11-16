@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda de Turnos Online</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+</head>
+<body>
+
+  <!-- Encabezado Superior -->
+  <header class="header">
+    <div class="header-container">
+      <a href="/" class="brand-link">
+        <span>📅</span>
+        <span id="headerBrandTitle">Agenda Online</span>
+        <span class="brand-badge">Turnos Disponibles</span>
+      </a>
+      <a href="/admin" class="admin-link-btn" title="Acceso exclusivo para el administrador">
+        ⚙️ Modo Administrador
+      </a>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="main-content">
+    
+    <!-- Hero / Título -->
+    <div class="hero">
+      <h1 id="heroTitle">Agenda tu Turno</h1>
+      <p id="heroDesc">Selecciona la fecha y el horario que mejor te convenga. Completa tus datos para confirmar tu cita en 1 clic.</p>
+    </div>
+
+    <!-- Vista de Reserva -->
+    <div id="bookingView" class="booking-grid">
+      
+      <!-- Columna Izquierda: Calendario y Horarios -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <h3>Elige Fecha y Horario</h3>
+        </div>
+
+        <!-- Widget de Calendario -->
+        <div class="calendar-widget">
+          <div class="calendar-nav">
+            <button type="button" id="prevMonthBtn" class="cal-nav-btn" title="Mes anterior">‹</button>
+            <div id="calMonthTitle" class="cal-month-title">Noviembre 2026</div>
+            <button type="button" id="nextMonthBtn" class="cal-nav-btn" title="Mes siguiente">›</button>
+          </div>
+          <div id="calendarGrid" class="calendar-grid">
+            <!-- Días inyectados dinámicamente con JS -->
+          </div>
+        </div>
+
+        <!-- Grilla de Horarios Disponibles -->
+        <div class="slots-container">
+          <div class="slots-title">
+            <span>Horarios para: <strong id="selectedDateLabel" style="color: var(--primary);">Hoy</strong></span>
+          </div>
+          <div id="slotsNotice" class="slot-empty-notice" style="display: none;">
+            Selecciona un día en el calendario para ver los horarios.
+          </div>
+          <div id="slotsGrid" class="slots-grid">
+            <!-- Botones de horarios inyectados con JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Formulario con Datos del Cliente -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <h3>Tus Datos de Contacto</h3>
+        </div>
+
+        <form id="bookingForm" class="booking-form" novalidate>
+          
+          <!-- Banner de Resumen de Horario Elegido -->
+          <div id="selectedSlotBanner" class="selected-slot-banner" style="display: none;">
+            <div class="selected-slot-icon">⏰</div>
+            <div class="selected-slot-details">
+              <span>Horario seleccionado:</span>
+              <strong id="bannerDateTimeText">Miércoles 18 a las 10:00 hs</strong>
+            </div>
+          </div>
+
+          <!-- Alerta de Errores -->
+          <div id="formAlert" class="alert alert-danger" style="display: none;"></div>
+
+          <!-- Campos Obligatorios: Nombre y Apellido -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="clientNombre">Nombre <span class="req-badge">*</span></label>
+              <input type="text" id="clientNombre" placeholder="Ej: Juan" required autocomplete="given-name">
+            </div>
+            <div class="form-group">
+              <label for="clientApellido">Apellido <span class="req-badge">*</span></label>
+              <input type="text" id="clientApellido" placeholder="Ej: Pérez" required autocomplete="family-name">
+            </div>
+          </div>
+
+          <!-- Campo Obligatorio: Celular / WhatsApp -->
+          <div class="form-group">
+            <label for="clientCelular">Celular / WhatsApp <span class="req-badge">*</span></label>
+            <input type="tel" id="clientCelular" placeholder="Ej: +54 9 11 2345-6789" required autocomplete="tel">
+            <span class="input-helper">Te contactaremos a este número para confirmar tu cita.</span>
+          </div>
+
+          <!-- Campo Opcional: Motivo / Observaciones -->
+          <div class="form-group">
+            <label for="clientMotivo">Motivo o Consulta <span style="color: var(--gray-400); font-weight: normal;">(Opcional)</span></label>
+            <input type="text" id="clientMotivo" placeholder="Ej: Primera consulta, asesoramiento, etc.">
+          </div>
+
+          <!-- Botón de Envío con 1 Clic -->
+          <button type="submit" id="submitBookingBtn" class="btn-submit" disabled>
+            <span>Confirmar Turno en 1 Clic 📅</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Vista de Éxito / Confirmación -->
+    <div id="successView" class="success-card" style="display: none;">
+      <div class="success-icon-wrap">✓</div>
+      <h2>¡Turno Reservado con Éxito!</h2>
+      <p>Tu cita quedó registrada correctamente en la agenda del profesional.</p>
+
+      <div class="success-details-box">
+        <div class="detail-row">
+          <span class="detail-label">Titular:</span>
+          <span id="successClientName" class="detail-value">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Fecha y Horario:</span>
+          <span id="successDateTime" class="detail-value">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Teléfono / WhatsApp:</span>
+          <span id="successPhone" class="detail-value">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Estado:</span>
+          <span class="badge-status confirmado">Confirmado</span>
+        </div>
+      </div>
+
+      <div class="action-buttons-group">
+        <a id="btnNotifyWhatsApp" href="#" target="_blank" class="btn-whatsapp">
+          💬 Notificar por WhatsApp al Administrador
+        </a>
+        <a id="btnDownloadClientIcs" href="#" class="btn-secondary">
+          🍏 Añadir a mi Calendario (Apple / Google / Outlook)
+        </a>
+        <button type="button" id="btnBookAnother" class="btn-secondary">
+          🔄 Reservar otro turno
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Agenda de Turnos Online &bull; Sincronizada con Apple Calendar</p>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+# Agenda de Turnos - Python Standard Library (No external pip dependencies required)
